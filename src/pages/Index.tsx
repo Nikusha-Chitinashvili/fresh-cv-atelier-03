@@ -16,7 +16,8 @@ const Index = () => {
       address: '',
       linkedin: '',
       website: '',
-      summary: ''
+      summary: '',
+      profilePicture: ''
     },
     experience: [],
     education: [],
@@ -26,7 +27,7 @@ const Index = () => {
     languages: []
   });
 
-  const [selectedTemplate, setSelectedTemplate] = useState('modern');
+  const selectedTemplate = 'modern';
   const [activeSection, setActiveSection] = useState('personal');
 
   return (
@@ -39,13 +40,13 @@ const Index = () => {
             Professional CV Creator
           </h1>
           <p className="text-center text-gray-600 max-w-2xl mx-auto">
-            Create stunning, professional CVs with our intuitive builder. Choose from multiple templates and export in various formats.
+            Create stunning, professional CVs with our intuitive builder. Upload your photo and export in various formats.
           </p>
         </div>
 
         <TemplateSelector 
           selectedTemplate={selectedTemplate}
-          onTemplateChange={setSelectedTemplate}
+          onTemplateChange={() => {}}
         />
 
         <div className="grid lg:grid-cols-2 gap-8 mt-8">

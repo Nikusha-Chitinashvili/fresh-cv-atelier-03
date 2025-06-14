@@ -30,14 +30,30 @@ export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
       {/* Header */}
       <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8">
         <div className="flex flex-col md:flex-row justify-between items-start">
-          <div className="flex-1">
-            <h1 className="text-4xl font-bold mb-2">{personalInfo.fullName || 'Your Name'}</h1>
-            {personalInfo.summary && (
-              <p className="text-blue-100 text-lg leading-relaxed max-w-2xl">
-                {personalInfo.summary}
-              </p>
+          <div className="flex items-start space-x-6 flex-1">
+            {/* Profile Picture */}
+            {personalInfo.profilePicture && (
+              <div className="flex-shrink-0">
+                <img
+                  src={personalInfo.profilePicture}
+                  alt={personalInfo.fullName || 'Profile'}
+                  className="w-24 h-24 rounded-full object-cover border-4 border-blue-300 shadow-lg"
+                />
+              </div>
             )}
+            
+            {/* Name and Summary */}
+            <div className="flex-1">
+              <h1 className="text-4xl font-bold mb-2">{personalInfo.fullName || 'Your Name'}</h1>
+              {personalInfo.summary && (
+                <p className="text-blue-100 text-lg leading-relaxed max-w-2xl">
+                  {personalInfo.summary}
+                </p>
+              )}
+            </div>
           </div>
+          
+          {/* Contact Info */}
           <div className="mt-4 md:mt-0 space-y-2 text-sm">
             {personalInfo.email && (
               <div className="flex items-center">
