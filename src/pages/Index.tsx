@@ -16,8 +16,7 @@ const Index = () => {
       address: '',
       linkedin: '',
       website: '',
-      summary: '',
-      profilePicture: ''
+      summary: ''
     },
     experience: [],
     education: [],
@@ -40,7 +39,7 @@ const Index = () => {
             Professional CV Creator
           </h1>
           <p className="text-center text-gray-600 max-w-2xl mx-auto">
-            Create stunning, professional CVs with our modern template. Add your photo, customize your content, and export in various formats.
+            Create stunning, professional CVs with our intuitive builder. Choose from multiple templates and export in various formats.
           </p>
         </div>
 

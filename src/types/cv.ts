@@ -1,3 +1,4 @@
+
 export interface PersonalInfo {
   fullName: string;
   email: string;
@@ -6,7 +7,6 @@ export interface PersonalInfo {
   linkedin: string;
   website: string;
   summary: string;
-  profilePicture: string;
 }
 
 export interface Experience {
