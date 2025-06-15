@@ -17,7 +17,7 @@ export const CVPreview = ({ cvData, colorTheme }: CVPreviewProps) => {
       </div>
       
       <div className="border rounded-lg bg-white shadow-sm overflow-hidden">
-        <div className="transform scale-75 origin-top-left" style={{ width: '133.33%', height: 'auto' }}>
+        <div className="transform scale-75 origin-top-left cv-preview-content" style={{ width: '133.33%', height: 'auto' }}>
           <ModernTemplate cvData={cvData} colorTheme={colorTheme} />
         </div>
       </div>
