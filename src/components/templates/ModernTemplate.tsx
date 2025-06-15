@@ -4,9 +4,10 @@ import { Mail, Phone, MapPin, Linkedin, Globe, Calendar, ExternalLink, Github } 
 
 interface ModernTemplateProps {
   cvData: CVData;
+  colorTheme?: string;
 }
 
-export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
+export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplateProps) => {
   const { personalInfo, experience, education, skills, projects, certifications, languages } = cvData;
 
   const formatDate = (dateString: string) => {
@@ -15,20 +16,119 @@ export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
   };
 
+  const getColorClasses = (color: string) => {
+    const colorMap: Record<string, any> = {
+      blue: {
+        gradient: 'from-blue-600 to-blue-800',
+        accent: 'text-blue-600',
+        accentBg: 'bg-blue-600',
+        lightAccent: 'text-blue-100',
+        border: 'border-blue-600',
+        borderLight: 'border-blue-200',
+        dot: 'bg-blue-600',
+        tag: 'bg-blue-100 text-blue-800',
+        skill: {
+          beginner: 'bg-blue-200',
+          intermediate: 'bg-blue-400',
+          advanced: 'bg-blue-600',
+          expert: 'bg-blue-800'
+        }
+      },
+      green: {
+        gradient: 'from-green-600 to-green-800',
+        accent: 'text-green-600',
+        accentBg: 'bg-green-600',
+        lightAccent: 'text-green-100',
+        border: 'border-green-600',
+        borderLight: 'border-green-200',
+        dot: 'bg-green-600',
+        tag: 'bg-green-100 text-green-800',
+        skill: {
+          beginner: 'bg-green-200',
+          intermediate: 'bg-green-400',
+          advanced: 'bg-green-600',
+          expert: 'bg-green-800'
+        }
+      },
+      purple: {
+        gradient: 'from-purple-600 to-purple-800',
+        accent: 'text-purple-600',
+        accentBg: 'bg-purple-600',
+        lightAccent: 'text-purple-100',
+        border: 'border-purple-600',
+        borderLight: 'border-purple-200',
+        dot: 'bg-purple-600',
+        tag: 'bg-purple-100 text-purple-800',
+        skill: {
+          beginner: 'bg-purple-200',
+          intermediate: 'bg-purple-400',
+          advanced: 'bg-purple-600',
+          expert: 'bg-purple-800'
+        }
+      },
+      red: {
+        gradient: 'from-red-600 to-red-800',
+        accent: 'text-red-600',
+        accentBg: 'bg-red-600',
+        lightAccent: 'text-red-100',
+        border: 'border-red-600',
+        borderLight: 'border-red-200',
+        dot: 'bg-red-600',
+        tag: 'bg-red-100 text-red-800',
+        skill: {
+          beginner: 'bg-red-200',
+          intermediate: 'bg-red-400',
+          advanced: 'bg-red-600',
+          expert: 'bg-red-800'
+        }
+      },
+      teal: {
+        gradient: 'from-teal-600 to-teal-800',
+        accent: 'text-teal-600',
+        accentBg: 'bg-teal-600',
+        lightAccent: 'text-teal-100',
+        border: 'border-teal-600',
+        borderLight: 'border-teal-200',
+        dot: 'bg-teal-600',
+        tag: 'bg-teal-100 text-teal-800',
+        skill: {
+          beginner: 'bg-teal-200',
+          intermediate: 'bg-teal-400',
+          advanced: 'bg-teal-600',
+          expert: 'bg-teal-800'
+        }
+      },
+      orange: {
+        gradient: 'from-orange-600 to-orange-800',
+        accent: 'text-orange-600',
+        accentBg: 'bg-orange-600',
+        lightAccent: 'text-orange-100',
+        border: 'border-orange-600',
+        borderLight: 'border-orange-200',
+        dot: 'bg-orange-600',
+        tag: 'bg-orange-100 text-orange-800',
+        skill: {
+          beginner: 'bg-orange-200',
+          intermediate: 'bg-orange-400',
+          advanced: 'bg-orange-600',
+          expert: 'bg-orange-800'
+        }
+      }
+    };
+    
+    return colorMap[color] || colorMap.blue;
+  };
+
+  const colors = getColorClasses(colorTheme);
+
   const getSkillColor = (level: string) => {
-    switch (level) {
-      case 'beginner': return 'bg-blue-200';
-      case 'intermediate': return 'bg-blue-400';
-      case 'advanced': return 'bg-blue-600';
-      case 'expert': return 'bg-blue-800';
-      default: return 'bg-gray-400';
-    }
+    return colors.skill[level as keyof typeof colors.skill] || 'bg-gray-400';
   };
 
   return (
     <div className="max-w-4xl mx-auto bg-white">
       {/* Header */}
-      <div className="bg-gradient-to-r from-blue-600 to-blue-800 text-white p-8">
+      <div className={`bg-gradient-to-r ${colors.gradient} text-white p-8`}>
         <div className="flex flex-col md:flex-row justify-between items-start">
           <div className="flex items-start space-x-6 flex-1">
             {/* Profile Picture */}
@@ -37,7 +137,7 @@ export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
                 <img
                   src={personalInfo.profilePicture}
                   alt={personalInfo.fullName || 'Profile'}
-                  className="w-24 h-24 rounded-full object-cover border-4 border-blue-300 shadow-lg"
+                  className={`w-24 h-24 rounded-full object-cover border-4 border-${colorTheme}-300 shadow-lg`}
                 />
               </div>
             )}
@@ -46,7 +146,7 @@ export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
             <div className="flex-1">
               <h1 className="text-4xl font-bold mb-2">{personalInfo.fullName || 'Your Name'}</h1>
               {personalInfo.summary && (
-                <p className="text-blue-100 text-lg leading-relaxed max-w-2xl">
+                <p className={`${colors.lightAccent} text-lg leading-relaxed max-w-2xl`}>
                   {personalInfo.summary}
                 </p>
               )}
@@ -95,17 +195,17 @@ export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
           {/* Experience */}
           {experience.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-blue-600 pb-2">
+              <h2 className={`text-2xl font-bold text-gray-800 mb-4 border-b-2 ${colors.border} pb-2`}>
                 Experience
               </h2>
               <div className="space-y-6">
                 {experience.map((exp) => (
-                  <div key={exp.id} className="relative pl-4 border-l-2 border-blue-200">
-                    <div className="absolute w-3 h-3 bg-blue-600 rounded-full -left-[7px] top-2"></div>
+                  <div key={exp.id} className={`relative pl-4 border-l-2 ${colors.borderLight}`}>
+                    <div className={`absolute w-3 h-3 ${colors.dot} rounded-full -left-[7px] top-2`}></div>
                     <div className="flex flex-col md:flex-row md:justify-between md:items-start mb-2">
                       <div>
                         <h3 className="text-xl font-semibold text-gray-800">{exp.position}</h3>
-                        <p className="text-blue-600 font-medium">{exp.company}</p>
+                        <p className={`${colors.accent} font-medium`}>{exp.company}</p>
                       </div>
                       <span className="text-gray-500 text-sm flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
@@ -131,7 +231,7 @@ export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
           {/* Projects */}
           {projects.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-800 mb-4 border-b-2 border-blue-600 pb-2">
+              <h2 className={`text-2xl font-bold text-gray-800 mb-4 border-b-2 ${colors.border} pb-2`}>
                 Projects
               </h2>
               <div className="space-y-6">
@@ -141,7 +241,7 @@ export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
                       <h3 className="text-xl font-semibold text-gray-800">{project.name}</h3>
                       <div className="flex space-x-2 mt-2 md:mt-0">
                         {project.link && (
-                          <ExternalLink className="h-4 w-4 text-blue-600" />
+                          <ExternalLink className={`h-4 w-4 ${colors.accent}`} />
                         )}
                         {project.github && (
                           <Github className="h-4 w-4 text-gray-600" />
@@ -154,7 +254,7 @@ export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
                         {project.technologies.map((tech, index) => (
                           <span
                             key={index}
-                            className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                            className={`px-2 py-1 ${colors.tag} text-xs rounded-full`}
                           >
                             {tech}
                           </span>
@@ -178,7 +278,7 @@ export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
                 {education.map((edu) => (
                   <div key={edu.id} className="bg-white p-4 rounded-lg shadow-sm">
                     <h3 className="font-semibold text-gray-800">{edu.degree}</h3>
-                    <p className="text-blue-600">{edu.institution}</p>
+                    <p className={colors.accent}>{edu.institution}</p>
                     {edu.field && <p className="text-gray-600 text-sm">{edu.field}</p>}
                     <p className="text-gray-500 text-sm mt-1">
                       {formatDate(edu.startDate)} - {formatDate(edu.endDate)}
@@ -224,7 +324,7 @@ export const ModernTemplate = ({ cvData }: ModernTemplateProps) => {
                 {certifications.map((cert) => (
                   <div key={cert.id} className="bg-white p-3 rounded-lg shadow-sm">
                     <h3 className="font-semibold text-gray-800 text-sm">{cert.name}</h3>
-                    <p className="text-blue-600 text-sm">{cert.issuer}</p>
+                    <p className={`${colors.accent} text-sm`}>{cert.issuer}</p>
                     <p className="text-gray-500 text-xs">{formatDate(cert.date)}</p>
                   </div>
                 ))}

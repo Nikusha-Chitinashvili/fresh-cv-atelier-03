@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { CVForm } from '@/components/CVForm';
 import { CVPreview } from '@/components/CVPreview';
-import { TemplateSelector } from '@/components/TemplateSelector';
+import { ColorSelector } from '@/components/ColorSelector';
 import { ExportTools } from '@/components/ExportTools';
 import { Header } from '@/components/Header';
 import { CVData } from '@/types/cv';
@@ -27,7 +27,7 @@ const Index = () => {
     languages: []
   });
 
-  const selectedTemplate = 'modern';
+  const [selectedColor, setSelectedColor] = useState('blue');
   const [activeSection, setActiveSection] = useState('personal');
 
   return (
@@ -40,13 +40,13 @@ const Index = () => {
             Professional CV Creator
           </h1>
           <p className="text-center text-gray-600 max-w-2xl mx-auto">
-            Create stunning, professional CVs with our intuitive builder. Upload your photo and export in various formats.
+            Create stunning, professional CVs with our modern template. Choose your color theme and upload your photo.
           </p>
         </div>
 
-        <TemplateSelector 
-          selectedTemplate={selectedTemplate}
-          onTemplateChange={() => {}}
+        <ColorSelector 
+          selectedColor={selectedColor}
+          onColorChange={setSelectedColor}
         />
 
         <div className="grid lg:grid-cols-2 gap-8 mt-8">
@@ -57,13 +57,13 @@ const Index = () => {
               activeSection={activeSection}
               setActiveSection={setActiveSection}
             />
-            <ExportTools cvData={cvData} template={selectedTemplate} />
+            <ExportTools cvData={cvData} template="modern" />
           </div>
           
           <div className="lg:sticky lg:top-8">
             <CVPreview 
               cvData={cvData}
-              template={selectedTemplate}
+              colorTheme={selectedColor}
             />
           </div>
         </div>

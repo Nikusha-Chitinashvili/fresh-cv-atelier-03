@@ -5,10 +5,10 @@ import { ModernTemplate } from './templates/ModernTemplate';
 
 interface CVPreviewProps {
   cvData: CVData;
-  template: string;
+  colorTheme: string;
 }
 
-export const CVPreview = ({ cvData }: CVPreviewProps) => {
+export const CVPreview = ({ cvData, colorTheme }: CVPreviewProps) => {
   return (
     <Card className="p-6">
       <div className="mb-4 flex items-center justify-between">
@@ -18,7 +18,7 @@ export const CVPreview = ({ cvData }: CVPreviewProps) => {
       
       <div className="border rounded-lg bg-white shadow-sm overflow-hidden">
         <div className="transform scale-75 origin-top-left" style={{ width: '133.33%', height: 'auto' }}>
-          <ModernTemplate cvData={cvData} />
+          <ModernTemplate cvData={cvData} colorTheme={colorTheme} />
         </div>
       </div>
     </Card>
