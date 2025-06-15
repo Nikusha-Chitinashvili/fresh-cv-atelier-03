@@ -48,6 +48,13 @@ const colorThemes = [
     description: 'Vibrant orange theme',
     preview: 'bg-gradient-to-br from-orange-100 to-orange-200',
     primary: 'orange'
+  },
+  {
+    id: 'black',
+    name: 'Professional Black',
+    description: 'Elegant black theme',
+    preview: 'bg-gradient-to-br from-gray-700 to-gray-900',
+    primary: 'black'
   }
 ];
 
@@ -55,7 +62,7 @@ export const ColorSelector = ({ selectedColor, onColorChange }: ColorSelectorPro
   return (
     <div className="mb-8">
       <h2 className="text-2xl font-semibold mb-4">Choose Your Color Theme</h2>
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-7 gap-4">
         {colorThemes.map((theme) => (
           <Card
             key={theme.id}
@@ -68,7 +75,7 @@ export const ColorSelector = ({ selectedColor, onColorChange }: ColorSelectorPro
           >
             <div className="p-3">
               <div className={`h-20 rounded-lg mb-2 ${theme.preview} flex items-center justify-center`}>
-                <div className="text-xs text-gray-600 font-medium">Preview</div>
+                <div className="text-xs text-white font-medium">Preview</div>
               </div>
               <h3 className="font-semibold text-sm text-gray-900">{theme.name}</h3>
               <p className="text-xs text-gray-500 mt-1">{theme.description}</p>

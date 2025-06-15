@@ -1,4 +1,3 @@
-
 import { CVData } from '@/types/cv';
 import { Mail, Phone, MapPin, Linkedin, Globe, Calendar, ExternalLink, Github } from 'lucide-react';
 
@@ -112,6 +111,22 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
           intermediate: 'bg-orange-400',
           advanced: 'bg-orange-600',
           expert: 'bg-orange-800'
+        }
+      },
+      black: {
+        gradient: 'from-gray-800 to-gray-900',
+        accent: 'text-gray-800',
+        accentBg: 'bg-gray-800',
+        lightAccent: 'text-gray-100',
+        border: 'border-gray-800',
+        borderLight: 'border-gray-300',
+        dot: 'bg-gray-800',
+        tag: 'bg-gray-100 text-gray-800',
+        skill: {
+          beginner: 'bg-gray-300',
+          intermediate: 'bg-gray-500',
+          advanced: 'bg-gray-700',
+          expert: 'bg-gray-900'
         }
       }
     };
