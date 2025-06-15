@@ -1,10 +1,11 @@
+
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { PersonalInfo } from '@/types/cv';
 import { Upload, X } from 'lucide-react';
-import { useRef } from 'react';
+import { useRef, useEffect } from 'react';
 
 interface PersonalInfoFormProps {
   personalInfo: PersonalInfo;
@@ -13,6 +14,22 @@ interface PersonalInfoFormProps {
 
 export const PersonalInfoForm = ({ personalInfo, onChange }: PersonalInfoFormProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize with empty values on first load
+  useEffect(() => {
+    if (personalInfo.fullName === 'Full Name') {
+      onChange({
+        fullName: '',
+        email: '',
+        phone: '',
+        address: '',
+        linkedin: '',
+        website: '',
+        summary: '',
+        profilePicture: ''
+      });
+    }
+  }, []);
 
   const handleChange = (field: keyof PersonalInfo, value: string) => {
     onChange({ ...personalInfo, [field]: value });
@@ -93,7 +110,7 @@ export const PersonalInfoForm = ({ personalInfo, onChange }: PersonalInfoFormPro
             id="fullName"
             value={personalInfo.fullName}
             onChange={(e) => handleChange('fullName', e.target.value)}
-            placeholder="John Doe"
+            placeholder="Enter your full name"
           />
         </div>
         <div>
@@ -103,7 +120,7 @@ export const PersonalInfoForm = ({ personalInfo, onChange }: PersonalInfoFormPro
             type="email"
             value={personalInfo.email}
             onChange={(e) => handleChange('email', e.target.value)}
-            placeholder="john@example.com"
+            placeholder="your.email@example.com"
           />
         </div>
       </div>
@@ -136,7 +153,7 @@ export const PersonalInfoForm = ({ personalInfo, onChange }: PersonalInfoFormPro
             id="linkedin"
             value={personalInfo.linkedin}
             onChange={(e) => handleChange('linkedin', e.target.value)}
-            placeholder="linkedin.com/in/johndoe"
+            placeholder="linkedin.com/in/yourname"
           />
         </div>
         <div>
@@ -145,7 +162,7 @@ export const PersonalInfoForm = ({ personalInfo, onChange }: PersonalInfoFormPro
             id="website"
             value={personalInfo.website}
             onChange={(e) => handleChange('website', e.target.value)}
-            placeholder="www.johndoe.com"
+            placeholder="www.yourwebsite.com"
           />
         </div>
       </div>

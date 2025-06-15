@@ -10,108 +10,89 @@ import { CVData } from '@/types/cv';
 const Index = () => {
   const [cvData, setCvData] = useState<CVData>({
     personalInfo: {
-      fullName: 'John Smith',
-      email: 'john.smith@email.com',
-      phone: '+1 (555) 123-4567',
-      address: 'New York, NY, USA',
-      linkedin: 'linkedin.com/in/johnsmith',
-      website: 'www.johnsmith.dev',
-      summary: 'Experienced software developer with 5+ years of expertise in full-stack development. Passionate about creating innovative solutions and leading development teams to deliver high-quality applications.',
+      fullName: 'Full Name',
+      email: 'email@example.com',
+      phone: '+1 (555) 000-0000',
+      address: 'City, State, Country',
+      linkedin: 'linkedin.com/in/yourname',
+      website: 'www.yourwebsite.com',
+      summary: 'Your professional summary will appear here. Describe your experience, skills, and career objectives in a few sentences.',
       profilePicture: ''
     },
     experience: [
       {
         id: '1',
-        company: 'Tech Solutions Inc.',
-        position: 'Senior Software Developer',
-        startDate: '2022-01',
+        company: 'Company Name',
+        position: 'Job Title',
+        startDate: '2023-01',
         endDate: '',
         current: true,
-        description: 'Lead development of web applications using React and Node.js',
+        description: 'Brief description of your role and responsibilities',
         achievements: [
-          'Increased application performance by 40% through code optimization',
-          'Led a team of 4 developers on major client projects',
-          'Implemented CI/CD pipelines reducing deployment time by 60%'
+          'Key achievement or responsibility',
+          'Another important accomplishment',
+          'Third notable contribution'
         ]
       },
       {
         id: '2',
-        company: 'Digital Innovations LLC',
-        position: 'Software Developer',
-        startDate: '2020-03',
-        endDate: '2021-12',
+        company: 'Previous Company',
+        position: 'Previous Job Title',
+        startDate: '2021-01',
+        endDate: '2022-12',
         current: false,
-        description: 'Developed and maintained web applications for various clients',
+        description: 'Description of your previous role',
         achievements: [
-          'Built responsive web applications serving 10,000+ users',
-          'Collaborated with design team to implement pixel-perfect UIs',
-          'Reduced bug reports by 50% through comprehensive testing'
+          'Major accomplishment in this role',
+          'Another significant contribution',
+          'Third key achievement'
         ]
       }
     ],
     education: [
       {
         id: '1',
-        institution: 'University of Technology',
+        institution: 'University Name',
         degree: 'Bachelor of Science',
-        field: 'Computer Science',
-        startDate: '2016-09',
-        endDate: '2020-05',
+        field: 'Your Field of Study',
+        startDate: '2017-09',
+        endDate: '2021-05',
         gpa: '3.8',
-        description: 'Graduated Magna Cum Laude'
+        description: 'Relevant coursework, honors, or activities'
       }
     ],
     skills: [
-      { id: '1', name: 'JavaScript', level: 'expert', category: 'technical' },
-      { id: '2', name: 'React', level: 'advanced', category: 'technical' },
-      { id: '3', name: 'Node.js', level: 'advanced', category: 'technical' },
-      { id: '4', name: 'Python', level: 'intermediate', category: 'technical' },
-      { id: '5', name: 'Leadership', level: 'advanced', category: 'soft' },
-      { id: '6', name: 'Communication', level: 'expert', category: 'soft' }
+      { id: '1', name: 'Technical Skill 1', level: 'expert', category: 'technical' },
+      { id: '2', name: 'Technical Skill 2', level: 'advanced', category: 'technical' },
+      { id: '3', name: 'Technical Skill 3', level: 'intermediate', category: 'technical' },
+      { id: '4', name: 'Soft Skill 1', level: 'advanced', category: 'soft' },
+      { id: '5', name: 'Soft Skill 2', level: 'expert', category: 'soft' }
     ],
     projects: [
       {
         id: '1',
-        name: 'E-Commerce Platform',
-        description: 'Full-stack e-commerce solution with React frontend and Node.js backend',
-        technologies: ['React', 'Node.js', 'MongoDB', 'Stripe API'],
-        link: 'https://github.com/johnsmith/ecommerce',
-        github: 'https://github.com/johnsmith/ecommerce',
+        name: 'Project Name',
+        description: 'Brief description of your project and what it accomplishes',
+        technologies: ['Technology 1', 'Technology 2', 'Technology 3'],
+        link: 'https://project-demo.com',
+        github: 'https://github.com/username/project',
         startDate: '2023-01',
         endDate: '2023-06'
-      },
-      {
-        id: '2',
-        name: 'Task Management App',
-        description: 'Collaborative task management application with real-time updates',
-        technologies: ['Vue.js', 'Express.js', 'Socket.io', 'PostgreSQL'],
-        link: 'https://taskmanager.demo.com',
-        github: 'https://github.com/johnsmith/taskmanager',
-        startDate: '2022-08',
-        endDate: '2022-12'
       }
     ],
     certifications: [
       {
         id: '1',
-        name: 'AWS Certified Developer',
-        issuer: 'Amazon Web Services',
+        name: 'Certification Name',
+        issuer: 'Issuing Organization',
         date: '2023-03',
-        credentialId: 'AWS-DEV-2023-001',
-        link: 'https://aws.amazon.com/certification/'
-      },
-      {
-        id: '2',
-        name: 'React Developer Certification',
-        issuer: 'Meta',
-        date: '2022-11',
-        credentialId: 'META-REACT-2022-456'
+        credentialId: 'CERT-ID-123',
+        link: 'https://certification-link.com'
       }
     ],
     languages: [
       { id: '1', name: 'English', proficiency: 'native' },
-      { id: '2', name: 'Spanish', proficiency: 'conversational' },
-      { id: '3', name: 'French', proficiency: 'basic' }
+      { id: '2', name: 'Second Language', proficiency: 'conversational' }
     ]
   });
 
