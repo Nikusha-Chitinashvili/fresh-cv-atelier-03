@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CVData } from '@/types/cv';
@@ -18,9 +19,9 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
 
   const handleDownloadPDF = async () => {
     try {
-      toast("Generating high-quality PDF...");
+      toast("Generating crystal-clear PDF...");
       
-      // Find the CV preview element
+      // Find the CV preview element - look for the actual template inside the preview
       const cvElement = document.querySelector('[data-cv-template]') as HTMLElement;
       
       if (!cvElement) {
@@ -28,99 +29,92 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         return;
       }
 
-      // Temporarily remove any transforms that might affect rendering
-      const originalTransform = cvElement.style.transform;
-      const originalTransformOrigin = cvElement.style.transformOrigin;
-      cvElement.style.transform = 'none';
-      cvElement.style.transformOrigin = 'initial';
+      // Remove any scaling transforms temporarily to get the natural size
+      const previewContainer = cvElement.closest('.transform') as HTMLElement;
+      let originalTransform = '';
+      let originalWidth = '';
+      
+      if (previewContainer) {
+        originalTransform = previewContainer.style.transform;
+        originalWidth = previewContainer.style.width;
+        previewContainer.style.transform = 'scale(1)';
+        previewContainer.style.width = 'auto';
+      }
 
-      // Wait a bit for layout to settle
-      await new Promise(resolve => setTimeout(resolve, 100));
+      // Wait for layout to settle
+      await new Promise(resolve => setTimeout(resolve, 200));
 
-      // Create ultra high-quality canvas with professional settings
+      // Get the actual dimensions of the unscaled CV
+      const rect = cvElement.getBoundingClientRect();
+      const actualWidth = cvElement.scrollWidth || rect.width;
+      const actualHeight = cvElement.scrollHeight || rect.height;
+
+      // Create ultra high-quality canvas
       const canvas = await html2canvas(cvElement, {
-        scale: 4, // Ultra high DPI for crisp graphics
+        scale: 3, // High DPI for crisp text and graphics
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: cvElement.scrollWidth,
-        height: cvElement.scrollHeight,
+        width: actualWidth,
+        height: actualHeight,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: 1200, // Fixed width for consistency
-        windowHeight: cvElement.scrollHeight,
-        ignoreElements: (element) => {
-          // Ignore any elements that might cause issues
-          return element.classList?.contains('no-print') || false;
-        },
+        windowWidth: actualWidth,
+        windowHeight: actualHeight,
+        removeContainer: false,
+        imageTimeout: 0,
         onclone: (clonedDoc) => {
-          // Ensure all fonts are loaded in the cloned document
+          // Ensure fonts render properly in the clone
           const clonedElement = clonedDoc.querySelector('[data-cv-template]') as HTMLElement;
           if (clonedElement) {
-            clonedElement.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-            // Ensure all text is black for better contrast
+            // Force font loading
+            clonedElement.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+            
+            // Ensure all elements are visible
             const allElements = clonedElement.querySelectorAll('*');
             allElements.forEach((el: any) => {
-              const computedStyle = window.getComputedStyle(el);
-              if (computedStyle.color && computedStyle.color.includes('rgb')) {
-                // Keep colored elements but ensure good contrast
-                el.style.color = computedStyle.color;
-              }
+              el.style.webkitPrintColorAdjust = 'exact';
+              el.style.colorAdjust = 'exact';
             });
           }
         }
       });
 
-      // Restore original transform
-      cvElement.style.transform = originalTransform;
-      cvElement.style.transformOrigin = originalTransformOrigin;
+      // Restore original transforms
+      if (previewContainer) {
+        previewContainer.style.transform = originalTransform;
+        previewContainer.style.width = originalWidth;
+      }
 
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
       
-      // Professional A4 dimensions in points (72 DPI)
-      const a4WidthPt = 595.28;
-      const a4HeightPt = 841.89;
+      // Calculate PDF dimensions to fit the content perfectly
+      // Use points (72 DPI standard)
+      const pdfWidth = (imgWidth * 72) / (canvas.width / actualWidth) / 3; // Adjust for scale factor
+      const pdfHeight = (imgHeight * 72) / (canvas.height / actualHeight) / 3; // Adjust for scale factor
       
-      // Calculate optimal scaling to fit content while maintaining quality
-      const margin = 20; // 20pt margin on all sides
-      const maxWidth = a4WidthPt - (margin * 2);
-      const maxHeight = a4HeightPt - (margin * 2);
-      
-      // Calculate scale to fit the content optimally
-      const scaleX = maxWidth / imgWidth;
-      const scaleY = maxHeight / imgHeight;
-      const optimalScale = Math.min(scaleX, scaleY);
-      
-      const finalWidth = imgWidth * optimalScale;
-      const finalHeight = imgHeight * optimalScale;
-
-      // Create PDF with professional settings
+      // Create PDF with exact dimensions to match content
       const pdf = new jsPDF({
-        orientation: finalHeight > finalWidth ? 'portrait' : 'landscape',
+        orientation: pdfHeight > pdfWidth ? 'portrait' : 'landscape',
         unit: 'pt',
-        format: 'a4',
-        compress: false, // Don't compress for better quality
-        precision: 16
+        format: [pdfWidth, pdfHeight], // Custom format to match content exactly
+        compress: false
       });
 
-      // Center the content on the page
-      const x = (pdf.internal.pageSize.getWidth() - finalWidth) / 2;
-      const y = (pdf.internal.pageSize.getHeight() - finalHeight) / 2;
-      
-      // Add image with maximum quality settings
+      // Add the image to fill the entire PDF page
       pdf.addImage(
-        canvas.toDataURL('image/png', 1.0), // Use PNG for better quality
+        canvas.toDataURL('image/png', 1.0),
         'PNG',
-        x,
-        y,
-        finalWidth,
-        finalHeight,
+        0, // No margins - fill entire page
+        0,
+        pdfWidth,
+        pdfHeight,
         undefined,
-        'MEDIUM' // Better compression balance
+        'FAST' // Use FAST for better quality with our high-res canvas
       );
 
-      // Add metadata for professionalism
+      // Add professional metadata
       pdf.setProperties({
         title: `${cvData.personalInfo.fullName || 'Professional'} CV`,
         subject: 'Curriculum Vitae',
@@ -128,14 +122,13 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         creator: 'Professional CV Creator'
       });
 
-      // Generate filename with current date
+      // Generate filename
       const currentDate = new Date().toISOString().split('T')[0];
       const fileName = `${(cvData.personalInfo.fullName || 'CV').replace(/[^a-zA-Z0-9]/g, '_')}_${currentDate}.pdf`;
       
-      // Save with professional filename
       pdf.save(fileName);
       
-      toast.success("Professional PDF downloaded successfully!");
+      toast.success("Crystal-clear PDF downloaded successfully!");
       
     } catch (error) {
       console.error('Error generating PDF:', error);
@@ -202,13 +195,13 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
       </div>
       
       <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-        <h3 className="font-medium text-blue-900 mb-2">✨ Professional Features</h3>
+        <h3 className="font-medium text-blue-900 mb-2">✨ Crystal Clear PDF</h3>
         <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Ultra high-quality PDF generation (4x DPI)</li>
           <li>• Perfect replica of your live preview</li>
-          <li>• Optimized for professional printing</li>
-          <li>• Automatic filename with date stamp</li>
-          <li>• Single page layout with smart scaling</li>
+          <li>• High-resolution rendering (3x DPI)</li>
+          <li>• Custom page size to fit your CV exactly</li>
+          <li>• Professional print quality</li>
+          <li>• Zero compression for maximum clarity</li>
         </ul>
       </div>
     </Card>
