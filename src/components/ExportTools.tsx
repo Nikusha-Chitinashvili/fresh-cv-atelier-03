@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CVData } from '@/types/cv';
@@ -86,15 +85,14 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         removeContainer: false,
         imageTimeout: 20000,
         logging: false,
-        pixelRatio: window.devicePixelRatio || 1,
         onclone: (clonedDoc) => {
           // Ensure perfect cloning with all styles preserved
           const clonedElement = clonedDoc.querySelector('[data-cv-template]') as HTMLElement;
           if (clonedElement) {
             // Apply system fonts for maximum compatibility
             clonedElement.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-            clonedElement.style.fontSmoothing = 'antialiased';
-            clonedElement.style.webkitFontSmoothing = 'antialiased';
+            (clonedElement.style as any).fontSmoothing = 'antialiased';
+            (clonedElement.style as any).webkitFontSmoothing = 'antialiased';
             
             // Force exact color rendering using type assertion
             const allElements = clonedElement.querySelectorAll('*');
