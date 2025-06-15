@@ -125,8 +125,7 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         title: `${cvData.personalInfo.fullName || 'Professional'} CV`,
         subject: 'Curriculum Vitae',
         author: cvData.personalInfo.fullName || 'CV Creator',
-        creator: 'Professional CV Creator',
-        producer: 'Professional CV Creator'
+        creator: 'Professional CV Creator'
       });
 
       // Generate filename with current date
