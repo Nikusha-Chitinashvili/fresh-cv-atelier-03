@@ -1,7 +1,8 @@
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CVData } from '@/types/cv';
-import { Download, FileText, Share2, Printer } from 'lucide-react';
+import { Download, FileText, Share2, Printer, Image } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { toast } from 'sonner';
@@ -14,6 +15,100 @@ interface ExportToolsProps {
 export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownloadImage = async () => {
+    try {
+      toast.loading("Capturing CV preview as image...");
+      
+      // Find the CV template element
+      const cvElement = document.querySelector('[data-cv-template]') as HTMLElement;
+      
+      if (!cvElement) {
+        toast.error("Error: CV preview not found");
+        return;
+      }
+
+      // Store original styles and remove any transformations
+      const previewContainer = cvElement.closest('.transform') as HTMLElement;
+      let originalStyles = {
+        transform: '',
+        width: '',
+        height: '',
+        overflow: '',
+        position: '',
+        left: '',
+        top: ''
+      };
+      
+      if (previewContainer) {
+        originalStyles.transform = previewContainer.style.transform;
+        originalStyles.width = previewContainer.style.width;
+        originalStyles.height = previewContainer.style.height;
+        originalStyles.overflow = previewContainer.style.overflow;
+        originalStyles.position = previewContainer.style.position;
+        originalStyles.left = previewContainer.style.left;
+        originalStyles.top = previewContainer.style.top;
+        
+        // Reset to natural size and position for perfect capture
+        previewContainer.style.transform = 'scale(1)';
+        previewContainer.style.width = 'auto';
+        previewContainer.style.height = 'auto';
+        previewContainer.style.overflow = 'visible';
+        previewContainer.style.position = 'static';
+        previewContainer.style.left = 'auto';
+        previewContainer.style.top = 'auto';
+      }
+
+      // Allow layout to stabilize
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Create high-resolution canvas
+      const canvas = await html2canvas(cvElement, {
+        scale: 3, // High DPI for crisp image
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        scrollX: 0,
+        scrollY: 0,
+        removeContainer: false,
+        imageTimeout: 15000,
+        logging: false
+      });
+
+      // Restore original styles immediately
+      if (previewContainer) {
+        previewContainer.style.transform = originalStyles.transform;
+        previewContainer.style.width = originalStyles.width;
+        previewContainer.style.height = originalStyles.height;
+        previewContainer.style.overflow = originalStyles.overflow;
+        previewContainer.style.position = originalStyles.position;
+        previewContainer.style.left = originalStyles.left;
+        previewContainer.style.top = originalStyles.top;
+      }
+
+      // Convert to high-quality PNG and download
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      
+      // Create download link
+      const currentDate = new Date().toISOString().split('T')[0];
+      const cleanName = (cvData.personalInfo.fullName || 'CV')
+        .replace(/[^a-zA-Z0-9\s-]/g, '')
+        .replace(/\s+/g, '_')
+        .substring(0, 40);
+      const fileName = `${cleanName}_CV_${currentDate}.png`;
+      
+      const link = document.createElement('a');
+      link.download = fileName;
+      link.href = imgData;
+      link.click();
+      
+      toast.success("CV image downloaded successfully! 🎉");
+      
+    } catch (error) {
+      console.error('Image download error:', error);
+      toast.error("Failed to download image. Please try again.");
+    }
   };
 
   const handleDownloadPDF = async () => {
@@ -227,7 +322,12 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
       <h2 className="text-lg font-semibold mb-4">Export & Share</h2>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Button onClick={handleDownloadPDF} className="flex items-center justify-center">
+        <Button onClick={handleDownloadImage} className="flex items-center justify-center">
+          <Image className="h-4 w-4 mr-2" />
+          Download Image
+        </Button>
+        
+        <Button onClick={handleDownloadPDF} variant="outline" className="flex items-center justify-center">
           <Download className="h-4 w-4 mr-2" />
           Download PDF
         </Button>
@@ -242,21 +342,19 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
           Share CV
         </Button>
         
-        <Button onClick={handleSaveData} variant="outline" className="flex items-center justify-center">
+        <Button onClick={handleSaveData} variant="outline" className="flex items-center justify-center col-span-full">
           <FileText className="h-4 w-4 mr-2" />
           Save Data
         </Button>
       </div>
       
-      <div className="mt-4 p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-lg border border-emerald-200">
-        <h3 className="font-medium text-emerald-900 mb-2">🎯 Perfect PDF Replica</h3>
-        <ul className="text-sm text-emerald-700 space-y-1">
-          <li>• 100% identical to live preview display</li>
-          <li>• Ultra-high resolution (4x DPI) for crystal-clear text</li>
-          <li>• Perfect color accuracy and font rendering</li>
-          <li>• Optimized dimensions matching your CV layout</li>
-          <li>• Professional print-ready quality output</li>
-          <li>• Maximum precision PDF generation</li>
+      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+        <h3 className="font-medium text-blue-900 mb-2">📸 High-Quality Image Export</h3>
+        <ul className="text-sm text-blue-700 space-y-1">
+          <li>• Perfect replica of your live preview</li>
+          <li>• High-resolution PNG format (3x DPI)</li>
+          <li>• Crystal-clear text and graphics</li>
+          <li>• Ready for sharing on social media or portfolios</li>
         </ul>
       </div>
     </Card>
