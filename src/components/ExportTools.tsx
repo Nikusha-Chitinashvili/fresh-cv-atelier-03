@@ -1,3 +1,4 @@
+
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CVData } from '@/types/cv';
@@ -41,7 +42,11 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
       // Allow layout to stabilize after removing scale
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Create high-resolution canvas
+      // Get the full dimensions including all margins and padding
+      const rect = cvElement.getBoundingClientRect();
+      const computedStyle = window.getComputedStyle(cvElement);
+      
+      // Create high-resolution canvas with full element dimensions
       const canvas = await html2canvas(cvElement, {
         scale: 2, // High DPI for crisp image
         useCORS: true,
@@ -49,8 +54,8 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
-        width: cvElement.scrollWidth,
-        height: cvElement.scrollHeight,
+        width: Math.ceil(rect.width),
+        height: Math.ceil(rect.height),
         logging: false
       });
 
@@ -325,7 +330,7 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         <ul className="text-sm text-blue-700 space-y-1">
           <li>• Perfect replica of your live preview</li>
           <li>• High-resolution PNG format (2x DPI)</li>
-          <li>• Full width and natural dimensions</li>
+          <li>• Full width and natural dimensions with all spacing</li>
           <li>• Ready for sharing on social media or portfolios</li>
         </ul>
       </div>
