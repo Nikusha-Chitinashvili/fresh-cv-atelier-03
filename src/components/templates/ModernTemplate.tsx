@@ -1,5 +1,5 @@
 import { CVData } from '@/types/cv';
-import { Mail, Phone, MapPin, Linkedin, Globe, Calendar, ExternalLink, Github } from 'lucide-react';
+import { Mail, Phone, MapPin, Linkedin, Globe, Calendar, ExternalLink, Github, User } from 'lucide-react';
 
 interface ModernTemplateProps {
   cvData: CVData;
@@ -146,16 +146,20 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
       <div className={`bg-gradient-to-r ${colors.gradient} text-white p-8`}>
         <div className="flex flex-col md:flex-row justify-between items-start">
           <div className="flex items-start space-x-6 flex-1">
-            {/* Profile Picture */}
-            {personalInfo.profilePicture && (
-              <div className="flex-shrink-0">
+            {/* Profile Picture or User Icon */}
+            <div className="flex-shrink-0">
+              {personalInfo.profilePicture ? (
                 <img
                   src={personalInfo.profilePicture}
                   alt={personalInfo.fullName || 'Profile'}
                   className={`w-24 h-24 rounded-full object-cover border-4 border-${colorTheme}-300 shadow-lg`}
                 />
-              </div>
-            )}
+              ) : (
+                <div className={`w-24 h-24 rounded-full border-4 border-${colorTheme}-300 shadow-lg bg-white/20 flex items-center justify-center`}>
+                  <User className="h-12 w-12 text-white/70" />
+                </div>
+              )}
+            </div>
             
             {/* Name and Summary */}
             <div className="flex-1">

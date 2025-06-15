@@ -11,8 +11,8 @@ const Index = () => {
   const [cvData, setCvData] = useState<CVData>({
     personalInfo: {
       fullName: 'Full Name',
-      email: 'email@example.com',
-      phone: '+1 (555) 000-0000',
+      email: 'your.email@example.com',
+      phone: '+1 (555) 123-4567',
       address: 'City, State, Country',
       linkedin: 'linkedin.com/in/yourname',
       website: 'www.yourwebsite.com',
