@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CVData } from '@/types/cv';
@@ -100,128 +99,59 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         return;
       }
 
-      // Store original styles and remove any transformations
-      const previewContainer = cvElement.closest('.transform') as HTMLElement;
-      let originalStyles = {
-        transform: '',
-        width: '',
-        height: '',
-        overflow: '',
-        position: '',
-        left: '',
-        top: ''
-      };
+      // Find the scaled container and temporarily remove scaling
+      const scaledContainer = cvElement.closest('.transform') as HTMLElement;
+      let originalTransform = '';
       
-      if (previewContainer) {
-        originalStyles.transform = previewContainer.style.transform;
-        originalStyles.width = previewContainer.style.width;
-        originalStyles.height = previewContainer.style.height;
-        originalStyles.overflow = previewContainer.style.overflow;
-        originalStyles.position = previewContainer.style.position;
-        originalStyles.left = previewContainer.style.left;
-        originalStyles.top = previewContainer.style.top;
-        
-        // Reset to natural size and position for perfect capture
-        previewContainer.style.transform = 'scale(1)';
-        previewContainer.style.width = 'auto';
-        previewContainer.style.height = 'auto';
-        previewContainer.style.overflow = 'visible';
-        previewContainer.style.position = 'static';
-        previewContainer.style.left = 'auto';
-        previewContainer.style.top = 'auto';
+      if (scaledContainer) {
+        originalTransform = scaledContainer.style.transform;
+        scaledContainer.style.transform = 'scale(1)';
+        scaledContainer.style.transformOrigin = 'top left';
       }
 
-      // Allow layout to stabilize
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Allow layout to stabilize after removing scale
+      await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Get precise natural dimensions
-      const computedStyle = window.getComputedStyle(cvElement);
+      // Get the full dimensions including all margins and padding
       const rect = cvElement.getBoundingClientRect();
-      const naturalWidth = cvElement.offsetWidth || rect.width;
-      const naturalHeight = cvElement.offsetHeight || rect.height;
-
-      console.log('CV Element dimensions:', { naturalWidth, naturalHeight });
-
-      // Create ultra-high-resolution canvas with perfect settings
+      
+      // Create ultra-high-resolution canvas with same settings as image
       const canvas = await html2canvas(cvElement, {
-        scale: 4, // Maximum DPI for ultra-crisp rendering
+        scale: 2, // Same as image for consistency
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
-        width: naturalWidth,
-        height: naturalHeight,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: naturalWidth,
-        windowHeight: naturalHeight,
-        removeContainer: false,
-        imageTimeout: 20000,
-        logging: false,
-        onclone: (clonedDoc) => {
-          // Ensure perfect cloning with all styles preserved
-          const clonedElement = clonedDoc.querySelector('[data-cv-template]') as HTMLElement;
-          if (clonedElement) {
-            // Apply system fonts for maximum compatibility
-            clonedElement.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
-            (clonedElement.style as any).fontSmoothing = 'antialiased';
-            (clonedElement.style as any).webkitFontSmoothing = 'antialiased';
-            
-            // Force exact color rendering using type assertion
-            const allElements = clonedElement.querySelectorAll('*');
-            allElements.forEach((el: HTMLElement) => {
-              (el.style as any)['webkitPrintColorAdjust'] = 'exact';
-              (el.style as any)['colorAdjust'] = 'exact';
-              el.style.printColorAdjust = 'exact';
-              
-              // Ensure crisp text rendering
-              (el.style as any)['webkitFontSmoothing'] = 'antialiased';
-              (el.style as any)['mozOsxFontSmoothing'] = 'grayscale';
-              el.style.textRendering = 'optimizeLegibility';
-            });
-            
-            // Remove any scaling and ensure natural dimensions
-            clonedElement.style.transform = 'none';
-            clonedElement.style.width = naturalWidth + 'px';
-            clonedElement.style.height = 'auto';
-            clonedElement.style.minHeight = naturalHeight + 'px';
-          }
-        }
+        width: Math.ceil(rect.width),
+        height: Math.ceil(rect.height),
+        logging: false
       });
 
-      console.log('Canvas dimensions:', { width: canvas.width, height: canvas.height });
-
-      // Restore original styles immediately
-      if (previewContainer) {
-        previewContainer.style.transform = originalStyles.transform;
-        previewContainer.style.width = originalStyles.width;
-        previewContainer.style.height = originalStyles.height;
-        previewContainer.style.overflow = originalStyles.overflow;
-        previewContainer.style.position = originalStyles.position;
-        previewContainer.style.left = originalStyles.left;
-        previewContainer.style.top = originalStyles.top;
+      // Restore original transform immediately
+      if (scaledContainer) {
+        scaledContainer.style.transform = originalTransform;
       }
 
-      // Calculate precise PDF dimensions to maintain exact proportions
+      // Calculate PDF dimensions to match the captured canvas exactly
       const canvasWidth = canvas.width;
       const canvasHeight = canvas.height;
       
-      // Use precise scaling to maintain quality while optimizing size
-      const dpiScale = 0.8; // Balance between quality and file size
-      const pdfWidth = (canvasWidth * dpiScale * 72) / (96 * 4); // Account for 4x scale
-      const pdfHeight = (canvasHeight * dpiScale * 72) / (96 * 4);
+      // Convert canvas dimensions to PDF points (72 DPI standard)
+      // Scale factor accounts for the 2x scale we used in html2canvas
+      const scaleFactor = 72 / (96 * 2); // 96 DPI default, 2x scale, 72 points per inch
+      const pdfWidth = canvasWidth * scaleFactor;
+      const pdfHeight = canvasHeight * scaleFactor;
       
-      console.log('PDF dimensions:', { pdfWidth, pdfHeight });
-      
-      // Create PDF with exact custom dimensions
+      // Create PDF with exact dimensions matching the image
       const pdf = new jsPDF({
         orientation: pdfHeight > pdfWidth ? 'portrait' : 'landscape',
         unit: 'pt',
         format: [pdfWidth, pdfHeight],
-        compress: true,
-        precision: 32 // Maximum precision
+        compress: true
       });
 
-      // Convert to highest quality PNG and add to PDF
+      // Convert to high-quality PNG and add to PDF
       const imgData = canvas.toDataURL('image/png', 1.0);
       pdf.addImage(
         imgData,
@@ -231,19 +161,18 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         pdfWidth,
         pdfHeight,
         undefined,
-        'SLOW' // Best quality compression
+        'FAST' // Use FAST for better compatibility
       );
 
-      // Add comprehensive metadata
+      // Add metadata
       pdf.setProperties({
-        title: `${cvData.personalInfo.fullName || 'Professional'} - Curriculum Vitae`,
-        subject: 'Professional CV - High Quality PDF Export',
+        title: `${cvData.personalInfo.fullName || 'Professional'} - CV`,
+        subject: 'Professional CV',
         author: cvData.personalInfo.fullName || 'CV Builder User',
-        creator: 'Professional CV Builder - Lovable.dev',
-        keywords: 'CV, Resume, Professional, Career'
+        creator: 'Professional CV Builder'
       });
 
-      // Generate clean, professional filename
+      // Generate filename
       const currentDate = new Date().toISOString().split('T')[0];
       const cleanName = (cvData.personalInfo.fullName || 'Professional_CV')
         .replace(/[^a-zA-Z0-9\s-]/g, '')
@@ -251,7 +180,7 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         .substring(0, 40);
       const fileName = `${cleanName}_CV_${currentDate}.pdf`;
       
-      // Save the perfect PDF
+      // Save the PDF
       pdf.save(fileName);
       
       toast.success("Perfect PDF replica generated! 🎉");
