@@ -2,10 +2,9 @@
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CVData } from '@/types/cv';
-import { Download, FileText, Sparkles } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { toast } from 'sonner';
 import { useState } from 'react';
-import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 interface PDFExportProps {
@@ -19,163 +18,188 @@ export const PDFExport = ({ cvData, colorTheme }: PDFExportProps) => {
   const generatePDF = async () => {
     setIsGenerating(true);
     try {
-      // Find the CV preview element
-      const previewElement = document.querySelector('.cv-preview-content') as HTMLElement;
+      // Create new jsPDF instance
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 20;
+      let yPosition = margin;
+
+      // Helper function to add text with word wrapping
+      const addText = (text: string, x: number, y: number, maxWidth: number, fontSize = 10) => {
+        pdf.setFontSize(fontSize);
+        const lines = pdf.splitTextToSize(text, maxWidth);
+        pdf.text(lines, x, y);
+        return y + (lines.length * fontSize * 0.4);
+      };
+
+      // Header
+      pdf.setFontSize(24);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(cvData.personalInfo.fullName || 'Your Name', margin, yPosition);
+      yPosition += 15;
+
+      // Contact Info
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const contactInfo = [
+        cvData.personalInfo.email,
+        cvData.personalInfo.phone,
+        cvData.personalInfo.address,
+        cvData.personalInfo.linkedin,
+        cvData.personalInfo.website
+      ].filter(Boolean).join(' | ');
       
-      if (!previewElement) {
-        toast.error('Preview not found. Please wait for the preview to load.');
-        return;
+      if (contactInfo) {
+        yPosition = addText(contactInfo, margin, yPosition, pageWidth - 2 * margin);
+        yPosition += 10;
       }
 
-      // Show generating toast
-      toast.info('Generating high-quality PDF...', { duration: 2000 });
-
-      // Enhanced canvas options for better quality
-      const canvas = await html2canvas(previewElement, {
-        scale: 3, // Higher scale for better resolution
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: previewElement.scrollWidth,
-        height: previewElement.scrollHeight,
-        logging: false, // Disable logging for cleaner output
-        imageTimeout: 5000, // Increase timeout for images
-        removeContainer: true, // Clean up temporary elements
-        foreignObjectRendering: true, // Better text rendering
-        letterRendering: true, // Improved letter spacing
-        onclone: (clonedDoc) => {
-          // Ensure all fonts are loaded in the cloned document
-          const clonedElement = clonedDoc.querySelector('.cv-preview-content') as HTMLElement;
-          if (clonedElement) {
-            clonedElement.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-            clonedElement.style.fontSize = '14px';
-            clonedElement.style.lineHeight = '1.5';
-          }
-        }
-      });
-
-      // Calculate PDF dimensions for A4
-      const imgWidth = 210; // A4 width in mm
-      const pageHeight = 297; // A4 height in mm
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Create PDF with high quality settings
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-        compress: true,
-        precision: 2
-      });
-
-      // Convert canvas to high-quality image
-      const imgData = canvas.toDataURL('image/jpeg', 0.95); // High quality JPEG
-      
-      if (imgHeight <= pageHeight) {
-        // Single page - center the content
-        const yOffset = Math.max(0, (pageHeight - imgHeight) / 2);
-        pdf.addImage(imgData, 'JPEG', 0, yOffset, imgWidth, imgHeight, undefined, 'FAST');
-      } else {
-        // Multiple pages with proper page breaks
-        let heightLeft = imgHeight;
-        let position = 0;
-        let pageNumber = 1;
+      // Summary
+      if (cvData.personalInfo.summary) {
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('SUMMARY', margin, yPosition);
+        yPosition += 8;
         
-        while (heightLeft > 0) {
-          if (pageNumber > 1) {
-            pdf.addPage();
-          }
-          
-          pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-          heightLeft -= pageHeight;
-          position -= pageHeight;
-          pageNumber++;
-        }
+        pdf.setFont('helvetica', 'normal');
+        yPosition = addText(cvData.personalInfo.summary, margin, yPosition, pageWidth - 2 * margin, 10);
+        yPosition += 10;
       }
 
-      // Add metadata to PDF
-      pdf.setProperties({
-        title: `${cvData.personalInfo.fullName || 'Professional'} - CV`,
-        subject: 'Curriculum Vitae',
-        author: cvData.personalInfo.fullName || 'CV Creator User',
-        creator: 'Professional CV Creator',
-        producer: 'Lovable CV Builder'
-      });
+      // Experience
+      if (cvData.experience.length > 0) {
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('EXPERIENCE', margin, yPosition);
+        yPosition += 8;
 
-      // Generate filename with timestamp for uniqueness
-      const timestamp = new Date().toISOString().split('T')[0];
-      const fileName = `${(cvData.personalInfo.fullName || 'CV').replace(/[^a-zA-Z0-9]/g, '_')}_${timestamp}.pdf`;
-      
+        cvData.experience.forEach((exp) => {
+          if (yPosition > pageHeight - 50) {
+            pdf.addPage();
+            yPosition = margin;
+          }
+
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(exp.position, margin, yPosition);
+          
+          pdf.setFont('helvetica', 'normal');
+          const dateText = `${exp.startDate} - ${exp.current ? 'Present' : exp.endDate}`;
+          pdf.text(dateText, pageWidth - margin - pdf.getTextWidth(dateText), yPosition);
+          yPosition += 6;
+
+          pdf.setFontSize(10);
+          pdf.text(exp.company, margin, yPosition);
+          yPosition += 6;
+
+          if (exp.description) {
+            yPosition = addText(exp.description, margin, yPosition, pageWidth - 2 * margin, 9);
+            yPosition += 3;
+          }
+
+          if (exp.achievements.length > 0 && exp.achievements[0]) {
+            exp.achievements.filter(achievement => achievement.trim()).forEach((achievement) => {
+              yPosition = addText(`• ${achievement}`, margin + 5, yPosition, pageWidth - 2 * margin - 5, 9);
+              yPosition += 2;
+            });
+          }
+          yPosition += 8;
+        });
+      }
+
+      // Education
+      if (cvData.education.length > 0) {
+        if (yPosition > pageHeight - 50) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('EDUCATION', margin, yPosition);
+        yPosition += 8;
+
+        cvData.education.forEach((edu) => {
+          pdf.setFontSize(11);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text(`${edu.degree}${edu.field ? ` in ${edu.field}` : ''}`, margin, yPosition);
+          yPosition += 6;
+
+          pdf.setFont('helvetica', 'normal');
+          pdf.setFontSize(10);
+          pdf.text(edu.institution, margin, yPosition);
+          yPosition += 5;
+
+          const dateText = `${edu.startDate} - ${edu.endDate}`;
+          pdf.text(dateText, margin, yPosition);
+          yPosition += 8;
+        });
+      }
+
+      // Skills
+      if (cvData.skills.length > 0) {
+        if (yPosition > pageHeight - 50) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('SKILLS', margin, yPosition);
+        yPosition += 8;
+
+        const skillsByCategory = cvData.skills.reduce((acc, skill) => {
+          if (!acc[skill.category]) acc[skill.category] = [];
+          acc[skill.category].push(skill.name);
+          return acc;
+        }, {} as Record<string, string[]>);
+
+        Object.entries(skillsByCategory).forEach(([category, skills]) => {
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          const categoryTitle = category === 'technical' ? 'Technical Skills' : 
+                               category === 'soft' ? 'Soft Skills' : 'Languages';
+          pdf.text(`${categoryTitle}:`, margin, yPosition);
+          yPosition += 5;
+
+          pdf.setFont('helvetica', 'normal');
+          yPosition = addText(skills.join(', '), margin + 5, yPosition, pageWidth - 2 * margin - 5, 9);
+          yPosition += 8;
+        });
+      }
+
       // Save the PDF
+      const fileName = `${cvData.personalInfo.fullName || 'CV'}.pdf`;
       pdf.save(fileName);
       
-      toast.success('✨ High-quality PDF downloaded successfully!', {
-        description: `File saved as: ${fileName}`
-      });
+      toast.success('PDF downloaded successfully!');
     } catch (error) {
       console.error('PDF generation error:', error);
-      toast.error('Failed to generate PDF. Please try again.', {
-        description: 'If the issue persists, try refreshing the page.'
-      });
+      toast.error('Failed to generate PDF. Please try again.');
     } finally {
       setIsGenerating(false);
     }
   };
 
   return (
-    <Card className="p-6 bg-gradient-to-br from-indigo-50 via-white to-purple-50 border-2 border-indigo-100">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="p-2 bg-indigo-100 rounded-lg">
-          <FileText className="h-5 w-5 text-indigo-600" />
-        </div>
-        <h2 className="text-xl font-semibold text-gray-800">Export Your CV</h2>
-      </div>
+    <Card className="p-6">
+      <h2 className="text-lg font-semibold mb-4">Export CV</h2>
       
       <Button 
         onClick={generatePDF} 
         disabled={isGenerating}
-        className="w-full h-12 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-medium shadow-lg hover:shadow-xl transition-all duration-200 transform hover:-translate-y-0.5"
+        className="w-full flex items-center justify-center"
       >
-        {isGenerating ? (
-          <>
-            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-3" />
-            Generating PDF...
-          </>
-        ) : (
-          <>
-            <Download className="h-4 w-4 mr-2" />
-            Download High-Quality PDF
-          </>
-        )}
+        <Download className="h-4 w-4 mr-2" />
+        {isGenerating ? 'Generating PDF...' : 'Download PDF'}
       </Button>
       
-      <div className="mt-6 p-4 bg-white/80 backdrop-blur-sm rounded-xl border border-indigo-100 shadow-sm">
-        <div className="flex items-start gap-3">
-          <div className="p-1.5 bg-gradient-to-br from-indigo-100 to-purple-100 rounded-lg flex-shrink-0">
-            <Sparkles className="h-4 w-4 text-indigo-600" />
-          </div>
-          <div>
-            <h3 className="font-semibold text-indigo-900 mb-2">Premium PDF Export</h3>
-            <ul className="text-sm text-indigo-700 space-y-1">
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></div>
-                High-resolution output (3x quality)
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></div>
-                Perfect font rendering & spacing
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></div>
-                Professional A4 formatting
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 bg-indigo-400 rounded-full"></div>
-                Multi-page support with smart breaks
-              </li>
-            </ul>
-          </div>
-        </div>
+      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+        <h3 className="font-medium text-blue-900 mb-2">📄 PDF Export</h3>
+        <p className="text-sm text-blue-700">
+          Download your CV as a professional PDF document ready for sharing or printing.
+        </p>
       </div>
     </Card>
   );
