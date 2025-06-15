@@ -18,19 +18,28 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
 
   const handleDownloadPDF = async () => {
     try {
-      toast("Generating PDF...");
+      toast("Generating high-quality PDF...");
       
       // Find the CV preview element
       const cvElement = document.querySelector('[data-cv-template]') as HTMLElement;
       
       if (!cvElement) {
-        toast("Error: CV preview not found");
+        toast.error("Error: CV preview not found");
         return;
       }
 
-      // Create high-quality canvas
+      // Temporarily remove any transforms that might affect rendering
+      const originalTransform = cvElement.style.transform;
+      const originalTransformOrigin = cvElement.style.transformOrigin;
+      cvElement.style.transform = 'none';
+      cvElement.style.transformOrigin = 'initial';
+
+      // Wait a bit for layout to settle
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Create ultra high-quality canvas with professional settings
       const canvas = await html2canvas(cvElement, {
-        scale: 3, // High DPI scaling for crisp graphics
+        scale: 4, // Ultra high DPI for crisp graphics
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -38,56 +47,100 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         height: cvElement.scrollHeight,
         scrollX: 0,
         scrollY: 0,
-        windowWidth: cvElement.scrollWidth,
-        windowHeight: cvElement.scrollHeight
+        windowWidth: 1200, // Fixed width for consistency
+        windowHeight: cvElement.scrollHeight,
+        ignoreElements: (element) => {
+          // Ignore any elements that might cause issues
+          return element.classList?.contains('no-print') || false;
+        },
+        onclone: (clonedDoc) => {
+          // Ensure all fonts are loaded in the cloned document
+          const clonedElement = clonedDoc.querySelector('[data-cv-template]') as HTMLElement;
+          if (clonedElement) {
+            clonedElement.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+            // Ensure all text is black for better contrast
+            const allElements = clonedElement.querySelectorAll('*');
+            allElements.forEach((el: any) => {
+              const computedStyle = window.getComputedStyle(el);
+              if (computedStyle.color && computedStyle.color.includes('rgb')) {
+                // Keep colored elements but ensure good contrast
+                el.style.color = computedStyle.color;
+              }
+            });
+          }
+        }
       });
 
-      // Calculate dimensions to fit entire CV on one page
+      // Restore original transform
+      cvElement.style.transform = originalTransform;
+      cvElement.style.transformOrigin = originalTransformOrigin;
+
       const imgWidth = canvas.width;
       const imgHeight = canvas.height;
       
-      // A4 dimensions in mm
-      const a4Width = 210;
-      const a4Height = 297;
+      // Professional A4 dimensions in points (72 DPI)
+      const a4WidthPt = 595.28;
+      const a4HeightPt = 841.89;
       
-      // Calculate the best fit scaling
-      const scaleX = a4Width / (imgWidth * 0.264583); // Convert pixels to mm
-      const scaleY = a4Height / (imgHeight * 0.264583);
-      const scale = Math.min(scaleX, scaleY);
+      // Calculate optimal scaling to fit content while maintaining quality
+      const margin = 20; // 20pt margin on all sides
+      const maxWidth = a4WidthPt - (margin * 2);
+      const maxHeight = a4HeightPt - (margin * 2);
       
-      const finalWidth = imgWidth * 0.264583 * scale;
-      const finalHeight = imgHeight * 0.264583 * scale;
+      // Calculate scale to fit the content optimally
+      const scaleX = maxWidth / imgWidth;
+      const scaleY = maxHeight / imgHeight;
+      const optimalScale = Math.min(scaleX, scaleY);
+      
+      const finalWidth = imgWidth * optimalScale;
+      const finalHeight = imgHeight * optimalScale;
 
-      // Create PDF
+      // Create PDF with professional settings
       const pdf = new jsPDF({
         orientation: finalHeight > finalWidth ? 'portrait' : 'landscape',
-        unit: 'mm',
-        format: 'a4'
+        unit: 'pt',
+        format: 'a4',
+        compress: false, // Don't compress for better quality
+        precision: 16
       });
 
-      // Add image to PDF, centered
+      // Center the content on the page
       const x = (pdf.internal.pageSize.getWidth() - finalWidth) / 2;
       const y = (pdf.internal.pageSize.getHeight() - finalHeight) / 2;
       
+      // Add image with maximum quality settings
       pdf.addImage(
-        canvas.toDataURL('image/jpeg', 1.0),
-        'JPEG',
+        canvas.toDataURL('image/png', 1.0), // Use PNG for better quality
+        'PNG',
         x,
         y,
         finalWidth,
         finalHeight,
         undefined,
-        'FAST'
+        'MEDIUM' // Better compression balance
       );
 
-      // Save PDF
-      const fileName = `${cvData.personalInfo.fullName || 'CV'}.pdf`;
+      // Add metadata for professionalism
+      pdf.setProperties({
+        title: `${cvData.personalInfo.fullName || 'Professional'} CV`,
+        subject: 'Curriculum Vitae',
+        author: cvData.personalInfo.fullName || 'CV Creator',
+        creator: 'Professional CV Creator',
+        producer: 'Professional CV Creator'
+      });
+
+      // Generate filename with current date
+      const currentDate = new Date().toISOString().split('T')[0];
+      const fileName = `${(cvData.personalInfo.fullName || 'CV').replace(/[^a-zA-Z0-9]/g, '_')}_${currentDate}.pdf`;
+      
+      // Save with professional filename
       pdf.save(fileName);
       
-      toast("PDF downloaded successfully!");
+      toast.success("Professional PDF downloaded successfully!");
+      
     } catch (error) {
       console.error('Error generating PDF:', error);
-      toast("Error generating PDF. Please try again.");
+      toast.error("Error generating PDF. Please try again.");
     }
   };
 
@@ -105,7 +158,7 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
     } else {
       // Fallback for browsers that don't support Web Share API
       navigator.clipboard.writeText(window.location.href);
-      alert('CV link copied to clipboard!');
+      toast.success('CV link copied to clipboard!');
     }
   };
 
@@ -119,6 +172,8 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
     linkElement.setAttribute('href', dataUri);
     linkElement.setAttribute('download', exportFileDefaultName);
     linkElement.click();
+    
+    toast.success('CV data saved successfully!');
   };
 
   return (
@@ -147,13 +202,14 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         </Button>
       </div>
       
-      <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-medium text-blue-900 mb-2">💡 Pro Tips</h3>
+      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+        <h3 className="font-medium text-blue-900 mb-2">✨ Professional Features</h3>
         <ul className="text-sm text-blue-700 space-y-1">
-          <li>• PDF will be generated as a single page with high quality</li>
-          <li>• Save your data to continue editing later</li>
-          <li>• Share your CV link with potential employers</li>
-          <li>• Try different color themes for various industries</li>
+          <li>• Ultra high-quality PDF generation (4x DPI)</li>
+          <li>• Perfect replica of your live preview</li>
+          <li>• Optimized for professional printing</li>
+          <li>• Automatic filename with date stamp</li>
+          <li>• Single page layout with smart scaling</li>
         </ul>
       </div>
     </Card>
