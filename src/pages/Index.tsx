@@ -5,7 +5,9 @@ import { CVPreview } from '@/components/CVPreview';
 import { ColorSelector } from '@/components/ColorSelector';
 import { ExportTools } from '@/components/ExportTools';
 import { Header } from '@/components/Header';
+import { LanguageSelector } from '@/components/LanguageSelector';
 import { CVData } from '@/types/cv';
+import { Sparkles, Zap, Download, Eye } from 'lucide-react';
 
 const Index = () => {
   const [cvData, setCvData] = useState<CVData>({
@@ -98,24 +100,79 @@ const Index = () => {
 
   const [selectedColor, setSelectedColor] = useState('blue');
   const [activeSection, setActiveSection] = useState('personal');
+  const [language, setLanguage] = useState<'en' | 'ka'>('en');
+
+  const features = [
+    {
+      icon: Sparkles,
+      title: language === 'en' ? 'Professional Templates' : 'პროფესიონალური შაბლონები',
+      description: language === 'en' ? 'Beautiful, modern CV templates designed by professionals' : 'ლამაზი, თანამედროვე CV შაბლონები, შექმნილი პროფესიონალების მიერ'
+    },
+    {
+      icon: Zap,
+      title: language === 'en' ? 'Real-time Preview' : 'რეალურ დროში ნახვა',
+      description: language === 'en' ? 'See your changes instantly as you type' : 'იხილეთ ცვლილებები მყისიერად, როდესაც აკრეფთ'
+    },
+    {
+      icon: Download,
+      title: language === 'en' ? 'Easy Export' : 'მარტივი ექსპორტი',
+      description: language === 'en' ? 'Download your CV in multiple formats' : 'ჩამოტვირთეთ თქვენი CV რამდენიმე ფორმატში'
+    },
+    {
+      icon: Eye,
+      title: language === 'en' ? 'Multiple Themes' : 'მრავალი თემა',
+      description: language === 'en' ? 'Choose from various color themes to match your style' : 'აირჩიეთ სხვადასხვა ფერადი თემებიდან თქვენი სტილის შესაბამისად'
+    }
+  ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-100">
       <Header />
       
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent mb-4">
-            Professional CV Creator
-          </h1>
-          <p className="text-center text-gray-600 max-w-2xl mx-auto">
-            Create stunning, professional CVs with our modern template. Choose your color theme and upload your photo.
-          </p>
-        </div>
+      {/* Hero Section */}
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/10 to-purple-600/10" />
+        <div className="relative container mx-auto px-4 py-16">
+          <div className="text-center max-w-4xl mx-auto">
+            <div className="flex justify-center mb-6">
+              <LanguageSelector language={language} onLanguageChange={setLanguage} />
+            </div>
+            
+            <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent mb-6 leading-tight">
+              {language === 'en' ? 'Create Your Perfect CV' : 'შექმენით თქვენი სრულყოფილი CV'}
+            </h1>
+            
+            <p className="text-xl text-gray-600 mb-8 leading-relaxed max-w-3xl mx-auto">
+              {language === 'en' 
+                ? 'Build a professional resume that stands out with our modern, customizable templates. Choose your style, add your information, and download instantly.'
+                : 'შექმენით პროფესიონალური რეზიუმე, რომელიც გამოირჩევა ჩვენი თანამედროვე, მორგებადი შაბლონებით. აირჩიეთ თქვენი სტილი, დაამატეთ ინფორმაცია და ჩამოტვირთეთ მყისიერად.'
+              }
+            </p>
 
+            {/* Features Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+              {features.map((feature, index) => {
+                const IconComponent = feature.icon;
+                return (
+                  <div key={index} className="bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                    <div className="bg-gradient-to-r from-blue-500 to-purple-600 w-12 h-12 rounded-lg flex items-center justify-center mb-4 mx-auto">
+                      <IconComponent className="h-6 w-6 text-white" />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">{feature.title}</h3>
+                    <p className="text-sm text-gray-600">{feature.description}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 pb-16">
         <ColorSelector 
           selectedColor={selectedColor}
           onColorChange={setSelectedColor}
+          language={language}
         />
 
         <div className="grid lg:grid-cols-2 gap-8 mt-8">
@@ -125,6 +182,7 @@ const Index = () => {
               setCvData={setCvData}
               activeSection={activeSection}
               setActiveSection={setActiveSection}
+              language={language}
             />
             <ExportTools cvData={cvData} template="modern" />
           </div>
@@ -133,6 +191,7 @@ const Index = () => {
             <CVPreview 
               cvData={cvData}
               colorTheme={selectedColor}
+              language={language}
             />
           </div>
         </div>

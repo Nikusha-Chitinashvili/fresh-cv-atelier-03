@@ -4,15 +4,16 @@ import { Mail, Phone, MapPin, Linkedin, Globe, Calendar, ExternalLink, Github, U
 interface ModernTemplateProps {
   cvData: CVData;
   colorTheme?: string;
+  language?: 'en' | 'ka';
 }
 
-export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplateProps) => {
+export const ModernTemplate = ({ cvData, colorTheme = 'blue', language = 'en' }: ModernTemplateProps) => {
   const { personalInfo, experience, education, skills, projects, certifications, languages } = cvData;
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '';
     const date = new Date(dateString + '-01');
-    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+    return date.toLocaleDateString(language === 'ka' ? 'ka-GE' : 'en-US', { year: 'numeric', month: 'short' });
   };
 
   const getColorClasses = (color: string) => {
@@ -140,6 +141,16 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
     return colors.skill[level as keyof typeof colors.skill] || 'bg-gray-400';
   };
 
+  const sectionTitles = {
+    experience: { en: 'Experience', ka: 'გამოცდილება' },
+    projects: { en: 'Projects', ka: 'პროექტები' },
+    education: { en: 'Education', ka: 'განათლება' },
+    skills: { en: 'Skills', ka: 'უნარები' },
+    certifications: { en: 'Certifications', ka: 'სერტიფიკატები' },
+    languages: { en: 'Languages', ka: 'ენები' },
+    present: { en: 'Present', ka: 'დღეს' }
+  };
+
   return (
     <div className="max-w-4xl mx-auto bg-white">
       {/* Header */}
@@ -163,7 +174,7 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
             
             {/* Name and Summary */}
             <div className="flex-1">
-              <h1 className="text-4xl font-bold mb-2">{personalInfo.fullName || 'Your Name'}</h1>
+              <h1 className="text-4xl font-bold mb-2">{personalInfo.fullName || (language === 'en' ? 'Full Name' : 'სრული სახელი')}</h1>
               {personalInfo.summary && (
                 <p className={`${colors.lightAccent} text-lg leading-relaxed max-w-2xl`}>
                   {personalInfo.summary}
@@ -215,7 +226,7 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
           {experience.length > 0 && (
             <section className="mb-8">
               <h2 className={`text-2xl font-bold text-gray-800 mb-4 border-b-2 ${colors.border} pb-2`}>
-                Experience
+                {sectionTitles.experience[language]}
               </h2>
               <div className="space-y-6">
                 {experience.map((exp) => (
@@ -228,7 +239,7 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
                       </div>
                       <span className="text-gray-500 text-sm flex items-center">
                         <Calendar className="h-4 w-4 mr-1" />
-                        {formatDate(exp.startDate)} - {exp.current ? 'Present' : formatDate(exp.endDate)}
+                        {formatDate(exp.startDate)} - {exp.current ? sectionTitles.present[language] : formatDate(exp.endDate)}
                       </span>
                     </div>
                     {exp.description && (
@@ -251,7 +262,7 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
           {projects.length > 0 && (
             <section className="mb-8">
               <h2 className={`text-2xl font-bold text-gray-800 mb-4 border-b-2 ${colors.border} pb-2`}>
-                Projects
+                {sectionTitles.projects[language]}
               </h2>
               <div className="space-y-6">
                 {projects.map((project) => (
@@ -292,7 +303,7 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
           {/* Education */}
           {education.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Education</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">{sectionTitles.education[language]}</h2>
               <div className="space-y-4">
                 {education.map((edu) => (
                   <div key={edu.id} className="bg-white p-4 rounded-lg shadow-sm">
@@ -312,7 +323,7 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
           {/* Skills */}
           {skills.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Skills</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">{sectionTitles.skills[language]}</h2>
               <div className="space-y-3">
                 {skills.map((skill) => (
                   <div key={skill.id} className="flex items-center justify-between">
@@ -338,7 +349,7 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
           {/* Certifications */}
           {certifications.length > 0 && (
             <section className="mb-8">
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Certifications</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">{sectionTitles.certifications[language]}</h2>
               <div className="space-y-3">
                 {certifications.map((cert) => (
                   <div key={cert.id} className="bg-white p-3 rounded-lg shadow-sm">
@@ -354,7 +365,7 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
           {/* Languages */}
           {languages.length > 0 && (
             <section>
-              <h2 className="text-xl font-bold text-gray-800 mb-4">Languages</h2>
+              <h2 className="text-xl font-bold text-gray-800 mb-4">{sectionTitles.languages[language]}</h2>
               <div className="space-y-2">
                 {languages.map((lang) => (
                   <div key={lang.id} className="flex justify-between items-center">
