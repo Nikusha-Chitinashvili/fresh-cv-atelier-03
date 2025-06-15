@@ -141,7 +141,7 @@ export const ModernTemplate = ({ cvData, colorTheme = 'blue' }: ModernTemplatePr
   };
 
   return (
-    <div className="max-w-4xl mx-auto bg-white">
+    <div className="max-w-4xl mx-auto bg-white" data-cv-template>
       {/* Header */}
       <div className={`bg-gradient-to-r ${colors.gradient} text-white p-8`}>
         <div className="flex flex-col md:flex-row justify-between items-start">

@@ -1,8 +1,10 @@
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CVData } from '@/types/cv';
 import { Download, FileText, Share2, Printer } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { toast } from 'sonner';
 
 interface ExportToolsProps {
   cvData: CVData;
@@ -14,11 +16,79 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
     window.print();
   };
 
-  const handleDownloadPDF = () => {
-    // In a real implementation, you would use a library like jsPDF or html2pdf
-    console.log('Downloading PDF with template:', template);
-    // This is a placeholder for the actual PDF generation
-    alert('PDF download functionality would be implemented here');
+  const handleDownloadPDF = async () => {
+    try {
+      toast("Generating PDF...");
+      
+      // Find the CV preview element
+      const cvElement = document.querySelector('[data-cv-template]') as HTMLElement;
+      
+      if (!cvElement) {
+        toast("Error: CV preview not found");
+        return;
+      }
+
+      // Create high-quality canvas
+      const canvas = await html2canvas(cvElement, {
+        scale: 3, // High DPI scaling for crisp graphics
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        width: cvElement.scrollWidth,
+        height: cvElement.scrollHeight,
+        scrollX: 0,
+        scrollY: 0,
+        windowWidth: cvElement.scrollWidth,
+        windowHeight: cvElement.scrollHeight
+      });
+
+      // Calculate dimensions to fit entire CV on one page
+      const imgWidth = canvas.width;
+      const imgHeight = canvas.height;
+      
+      // A4 dimensions in mm
+      const a4Width = 210;
+      const a4Height = 297;
+      
+      // Calculate the best fit scaling
+      const scaleX = a4Width / (imgWidth * 0.264583); // Convert pixels to mm
+      const scaleY = a4Height / (imgHeight * 0.264583);
+      const scale = Math.min(scaleX, scaleY);
+      
+      const finalWidth = imgWidth * 0.264583 * scale;
+      const finalHeight = imgHeight * 0.264583 * scale;
+
+      // Create PDF
+      const pdf = new jsPDF({
+        orientation: finalHeight > finalWidth ? 'portrait' : 'landscape',
+        unit: 'mm',
+        format: 'a4'
+      });
+
+      // Add image to PDF, centered
+      const x = (pdf.internal.pageSize.getWidth() - finalWidth) / 2;
+      const y = (pdf.internal.pageSize.getHeight() - finalHeight) / 2;
+      
+      pdf.addImage(
+        canvas.toDataURL('image/jpeg', 1.0),
+        'JPEG',
+        x,
+        y,
+        finalWidth,
+        finalHeight,
+        undefined,
+        'FAST'
+      );
+
+      // Save PDF
+      const fileName = `${cvData.personalInfo.fullName || 'CV'}.pdf`;
+      pdf.save(fileName);
+      
+      toast("PDF downloaded successfully!");
+    } catch (error) {
+      console.error('Error generating PDF:', error);
+      toast("Error generating PDF. Please try again.");
+    }
   };
 
   const handleShare = async () => {
@@ -80,10 +150,10 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
       <div className="mt-4 p-4 bg-blue-50 rounded-lg">
         <h3 className="font-medium text-blue-900 mb-2">💡 Pro Tips</h3>
         <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Use Print to save as PDF in most browsers</li>
+          <li>• PDF will be generated as a single page with high quality</li>
           <li>• Save your data to continue editing later</li>
           <li>• Share your CV link with potential employers</li>
-          <li>• Try different templates for various industries</li>
+          <li>• Try different color themes for various industries</li>
         </ul>
       </div>
     </Card>
