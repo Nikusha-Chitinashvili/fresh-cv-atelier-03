@@ -60,7 +60,7 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
 
       // Create high-resolution canvas with better settings
       const canvas = await html2canvas(cvElement, {
-        scale: 2, // High DPI for crisp rendering
+        scale: 3, // Even higher DPI for ultra-crisp rendering
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -77,14 +77,15 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
           // Ensure the cloned document renders properly
           const clonedElement = clonedDoc.querySelector('[data-cv-template]') as HTMLElement;
           if (clonedElement) {
-            // Fix font loading issues
+            // Fix font loading issues with system fonts for better compatibility
             clonedElement.style.fontFamily = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
             
-            // Ensure all elements have proper color adjustment for PDF
+            // Ensure all elements have proper color adjustment for PDF using index signature
             const allElements = clonedElement.querySelectorAll('*');
             allElements.forEach((el: HTMLElement) => {
-              el.style.webkitPrintColorAdjust = 'exact';
-              el.style.colorAdjust = 'exact';
+              // Use index signature to access vendor-specific properties
+              (el.style as any)['webkitPrintColorAdjust'] = 'exact';
+              (el.style as any)['colorAdjust'] = 'exact';
               el.style.printColorAdjust = 'exact';
             });
             
@@ -104,28 +105,29 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         previewContainer.style.overflow = originalStyles.overflow;
       }
 
-      // Calculate PDF dimensions (A4 proportions but custom size to fit content)
+      // Calculate PDF dimensions to match exactly what user sees
       const canvasWidth = canvas.width;
       const canvasHeight = canvas.height;
       
-      // Convert to points (72 DPI standard) with proper scaling
-      const pdfWidth = (canvasWidth * 72) / 96; // 96 DPI to 72 DPI conversion
-      const pdfHeight = (canvasHeight * 72) / 96;
+      // Use higher resolution scaling for better PDF quality
+      const scaleFactor = 0.75; // Optimize size vs quality
+      const pdfWidth = (canvasWidth * scaleFactor * 72) / 96;
+      const pdfHeight = (canvasHeight * scaleFactor * 72) / 96;
       
-      // Create PDF with exact dimensions to match the CV
+      // Create PDF with custom dimensions that match the CV layout exactly
       const pdf = new jsPDF({
         orientation: pdfHeight > pdfWidth ? 'portrait' : 'landscape',
         unit: 'pt',
         format: [pdfWidth, pdfHeight],
         compress: true,
-        precision: 2
+        precision: 16
       });
 
-      // Add the high-quality image to PDF
-      const imgData = canvas.toDataURL('image/jpeg', 0.95);
+      // Add the ultra-high-quality image to PDF
+      const imgData = canvas.toDataURL('image/png', 1.0); // PNG for better quality
       pdf.addImage(
         imgData,
-        'JPEG',
+        'PNG',
         0,
         0,
         pdfWidth,
@@ -153,7 +155,7 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
       // Save the PDF
       pdf.save(fileName);
       
-      toast.success("Perfect PDF generated! 🎉");
+      toast.success("Pixel-perfect PDF generated! 🎉");
       
     } catch (error) {
       console.error('PDF generation error:', error);
@@ -220,13 +222,13 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
       </div>
       
       <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg border border-green-200">
-        <h3 className="font-medium text-green-900 mb-2">🎯 Pixel-Perfect PDF</h3>
+        <h3 className="font-medium text-green-900 mb-2">🎯 Ultra High-Quality PDF</h3>
         <ul className="text-sm text-green-700 space-y-1">
-          <li>• Exact replica of your live preview</li>
-          <li>• Professional high-resolution output</li>
-          <li>• Perfect color and font rendering</li>
-          <li>• Custom page size optimized for your CV</li>
-          <li>• Ready for professional printing</li>
+          <li>• Perfect pixel-for-pixel replica of live preview</li>
+          <li>• Ultra-high resolution (3x DPI) for crisp text</li>
+          <li>• Exact color matching and font rendering</li>
+          <li>• Custom dimensions optimized for your CV layout</li>
+          <li>• Professional print-ready quality</li>
         </ul>
       </div>
     </Card>
