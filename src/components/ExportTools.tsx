@@ -1,4 +1,3 @@
-
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { CVData } from '@/types/cv';
@@ -21,7 +20,7 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
     try {
       toast.loading("Capturing CV preview as image...");
       
-      // Find the CV template element
+      // Find the CV template element directly (not the scaled container)
       const cvElement = document.querySelector('[data-cv-template]') as HTMLElement;
       
       if (!cvElement) {
@@ -29,62 +28,35 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         return;
       }
 
-      // Store original styles and remove any transformations
-      const previewContainer = cvElement.closest('.transform') as HTMLElement;
-      let originalStyles = {
-        transform: '',
-        width: '',
-        height: '',
-        overflow: '',
-        position: '',
-        left: '',
-        top: ''
-      };
+      // Find the scaled container and temporarily remove scaling
+      const scaledContainer = cvElement.closest('.transform') as HTMLElement;
+      let originalTransform = '';
       
-      if (previewContainer) {
-        originalStyles.transform = previewContainer.style.transform;
-        originalStyles.width = previewContainer.style.width;
-        originalStyles.height = previewContainer.style.height;
-        originalStyles.overflow = previewContainer.style.overflow;
-        originalStyles.position = previewContainer.style.position;
-        originalStyles.left = previewContainer.style.left;
-        originalStyles.top = previewContainer.style.top;
-        
-        // Reset to natural size and position for perfect capture
-        previewContainer.style.transform = 'scale(1)';
-        previewContainer.style.width = 'auto';
-        previewContainer.style.height = 'auto';
-        previewContainer.style.overflow = 'visible';
-        previewContainer.style.position = 'static';
-        previewContainer.style.left = 'auto';
-        previewContainer.style.top = 'auto';
+      if (scaledContainer) {
+        originalTransform = scaledContainer.style.transform;
+        scaledContainer.style.transform = 'scale(1)';
+        scaledContainer.style.transformOrigin = 'top left';
       }
 
-      // Allow layout to stabilize
-      await new Promise(resolve => setTimeout(resolve, 500));
+      // Allow layout to stabilize after removing scale
+      await new Promise(resolve => setTimeout(resolve, 100));
 
       // Create high-resolution canvas
       const canvas = await html2canvas(cvElement, {
-        scale: 3, // High DPI for crisp image
+        scale: 2, // High DPI for crisp image
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
         scrollX: 0,
         scrollY: 0,
-        removeContainer: false,
-        imageTimeout: 15000,
+        width: cvElement.scrollWidth,
+        height: cvElement.scrollHeight,
         logging: false
       });
 
-      // Restore original styles immediately
-      if (previewContainer) {
-        previewContainer.style.transform = originalStyles.transform;
-        previewContainer.style.width = originalStyles.width;
-        previewContainer.style.height = originalStyles.height;
-        previewContainer.style.overflow = originalStyles.overflow;
-        previewContainer.style.position = originalStyles.position;
-        previewContainer.style.left = originalStyles.left;
-        previewContainer.style.top = originalStyles.top;
+      // Restore original transform immediately
+      if (scaledContainer) {
+        scaledContainer.style.transform = originalTransform;
       }
 
       // Convert to high-quality PNG and download
@@ -352,8 +324,8 @@ export const ExportTools = ({ cvData, template }: ExportToolsProps) => {
         <h3 className="font-medium text-blue-900 mb-2">📸 High-Quality Image Export</h3>
         <ul className="text-sm text-blue-700 space-y-1">
           <li>• Perfect replica of your live preview</li>
-          <li>• High-resolution PNG format (3x DPI)</li>
-          <li>• Crystal-clear text and graphics</li>
+          <li>• High-resolution PNG format (2x DPI)</li>
+          <li>• Full width and natural dimensions</li>
           <li>• Ready for sharing on social media or portfolios</li>
         </ul>
       </div>
