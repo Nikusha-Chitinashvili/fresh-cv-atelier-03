@@ -1,9 +1,7 @@
-
 import { useState } from 'react';
 import { CVForm } from '@/components/CVForm';
 import { CVPreview } from '@/components/CVPreview';
 import { ColorSelector } from '@/components/ColorSelector';
-import { ExportTools } from '@/components/ExportTools';
 import { Header } from '@/components/Header';
 import { CVData } from '@/types/cv';
 
@@ -126,7 +124,6 @@ const Index = () => {
               activeSection={activeSection}
               setActiveSection={setActiveSection}
             />
-            <ExportTools cvData={cvData} template="modern" />
           </div>
           
           <div className="lg:sticky lg:top-8">
