@@ -23,7 +23,7 @@ export const PDFExport = () => {
 
       console.log('Starting PDF export...');
 
-      // Temporarily reset transform for capturing
+      // Temporarily reset transform and get original dimensions
       const originalStyle = (element as HTMLElement).style.transform;
       const originalWidth = (element as HTMLElement).style.width;
       
@@ -33,18 +33,22 @@ export const PDFExport = () => {
       // Wait a moment for styles to apply
       await new Promise(resolve => setTimeout(resolve, 100));
 
-      // Create high-quality canvas with enhanced settings
+      // Get the actual dimensions of the CV content
+      const rect = element.getBoundingClientRect();
+      const actualWidth = element.scrollWidth;
+      const actualHeight = element.scrollHeight;
+
+      // Create high-quality canvas at original size
       const canvas = await html2canvas(element as HTMLElement, {
         scale: 2, // High DPI for crisp text
         useCORS: true,
         allowTaint: false,
         backgroundColor: '#ffffff',
-        width: element.scrollWidth,
-        height: element.scrollHeight,
+        width: actualWidth,
+        height: actualHeight,
         scrollX: 0,
         scrollY: 0,
         ignoreElements: (element) => {
-          // Ignore any overlay elements or buttons that might interfere
           return element.classList?.contains('no-pdf') || false;
         }
       });
@@ -53,36 +57,24 @@ export const PDFExport = () => {
       (element as HTMLElement).style.transform = originalStyle;
       (element as HTMLElement).style.width = originalWidth;
 
-      // Calculate dimensions for A4 format (210 x 297 mm)
-      const imgWidth = 210;
-      const pageHeight = 297;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      // Create PDF with A4 format
+      // Calculate PDF dimensions based on canvas size
+      // Convert pixels to mm (assuming 96 DPI: 1 inch = 25.4mm, 1 inch = 96px)
+      const pdfWidth = (canvas.width / 2) * 0.264583; // Convert to mm (scale/2 because we used scale:2)
+      const pdfHeight = (canvas.height / 2) * 0.264583; // Convert to mm
+
+      // Create PDF with custom dimensions to fit the entire CV
       const pdf = new jsPDF({
-        orientation: 'portrait',
+        orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
         unit: 'mm',
-        format: 'a4',
+        format: [pdfWidth, pdfHeight],
         compress: true
       });
 
       // Convert canvas to high-quality image
       const imgData = canvas.toDataURL('image/jpeg', 0.95);
       
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      // Add the first page
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      // Add additional pages if content exceeds one page
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
+      // Add the entire CV as one image on one page
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
 
       // Generate filename with current date
       const now = new Date();
